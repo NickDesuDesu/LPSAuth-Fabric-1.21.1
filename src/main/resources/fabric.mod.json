@@ -1,0 +1,33 @@
+{
+	"schemaVersion": 1,
+	"id": "lpsauth",
+	"version": "${version}",
+	"name": "LPSAuth",
+	"description": "Authentication mod for Let's Play Server. Server-side only.",
+	"authors": [
+		"NickXD"
+	],
+	"contact": {
+		"homepage": "https://github.com/NickDesuDesu"
+	},
+	"license": "MIT",
+	"icon": "assets/lpsauth/icon.png",
+	"environment": "server",
+	"entrypoints": {
+		"main": [
+			"net.nickxd.lpsauth.LPSAuth"
+		]
+	},
+	"mixins": [
+		"lpsauth.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.14",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
