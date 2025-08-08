@@ -259,7 +259,12 @@ public class EventManager {
      * @return
      */
     public static boolean isLoggedIn(ServerPlayerEntity player) {
-        return PLAYER_LIST.get(player).get(0);
+        try {
+            return PLAYER_LIST.get(player).get(0);
+        } catch (Exception e) {
+            return false;
+        }
+
     }
 
 }

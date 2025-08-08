@@ -18,8 +18,9 @@ public class LivingEntityMixin {
 			cancellable = true
 	)
 	private void onCanTarget(LivingEntity target, CallbackInfoReturnable<Boolean> cir) {
-		if (target instanceof ServerPlayerEntity player && !EventManager.isLoggedIn(player)) {
-			cir.setReturnValue(false);
+		if (target instanceof ServerPlayerEntity player) {
+			if (!EventManager.isLoggedIn(player))
+				cir.setReturnValue(false);
 		}
 	}
 
@@ -27,8 +28,9 @@ public class LivingEntityMixin {
 	private void onDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
 		LivingEntity self = (LivingEntity)(Object)this;
 
-		if ((self instanceof ServerPlayerEntity player) && !EventManager.isLoggedIn(player)) {
-			cir.setReturnValue(false);
+		if (self instanceof ServerPlayerEntity player) {
+			if (!EventManager.isLoggedIn(player))
+				cir.setReturnValue(false);
 		}
 	}
 
