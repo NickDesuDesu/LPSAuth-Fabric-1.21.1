@@ -1,6 +1,5 @@
 package net.nickxd.lpsauth.managers;
 
-import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.*;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
@@ -9,7 +8,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
@@ -39,7 +38,7 @@ import static net.nickxd.lpsauth.LPSAuth.MOD_ID;
 
 public class EventManager {
     public static final Map<ServerPlayerEntity, List<Boolean>> PLAYER_LIST = new HashMap<>();
-    public static final Map<UUID, NbtList> SERVER_INVENTORY_COPY = new HashMap<>();
+    public static final Map<UUID, NbtCompound> SERVER_HEALTH_COPY = new HashMap<>();
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 
@@ -54,6 +53,11 @@ public class EventManager {
         player.velocityModified = true;
         player.teleport(player.getServerWorld(), xyz.get(0), xyz.get(1), xyz.get(2), rot.get(0), rot.get(1));
         player.sendMessage(Text.literal("Welcome back " + player.getName().getString() + "!"), true);
+
+        NbtCompound data = SERVER_HEALTH_COPY.get(player.getUuid());
+        float savedHealth = data.getFloat("lpsauth:health");
+        if (savedHealth > 0) player.setHealth(savedHealth);
+        else player.setHealth((float) 1);
 
         PLAYER_LIST.get(player).set(1, true);
     }
@@ -85,8 +89,11 @@ public class EventManager {
 
         PlayerLocationData.addData(playerPosition, (IEntityDataSaver) player);
 
-        NbtList nbt = player.getInventory().writeNbt(new NbtList());
-        SERVER_INVENTORY_COPY.put(player.getUuid(), nbt);
+        NbtCompound data = ((IEntityDataSaver)player).getPersistentData();
+        data.putFloat("lpsauth:health", player.getHealth());
+        SERVER_HEALTH_COPY.put(player.getUuid(), data);
+
+        player.setHealth(player.getMaxHealth());
 
         LOGGER.info(player.getName().getString() + "Added to NOT_LOGGED_IN");
     }
@@ -114,6 +121,9 @@ public class EventManager {
 
         for (Map.Entry<ServerPlayerEntity, List<Boolean>> entry: PLAYER_LIST.entrySet()) {
             ServerPlayerEntity player = entry.getKey();
+
+            if (player.getClass().getName().toLowerCase().contains("deployer")) continue;
+
             Boolean isLoggedIn = entry.getValue().get(0);
             Boolean loginPlayerOnce = entry.getValue().get(1);
 
@@ -139,11 +149,7 @@ public class EventManager {
             player.setVelocity(Vec3d.ZERO);
             player.velocityModified = true;
 
-//            NbtList savedInventory = SERVER_INVENTORY_COPY.get(player.getUuid());
-//            if (savedInventory != null) {
-//                player.getInventory().readNbt(savedInventory);
-//                player.currentScreenHandler.syncState();
-//            }
+            player.setHealth(player.getMaxHealth());
 
             if (ticks%50 == 0) HttpUtil.checkAccountRegistration(player);
         }
@@ -161,7 +167,7 @@ public class EventManager {
      * @return
      */
     private static ActionResult onEntityAttack(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult entityHitResult) {
-        if (player instanceof FakePlayer) return ActionResult.PASS;
+        if (player.getClass().getName().toLowerCase().contains("deployer")) return ActionResult.PASS;
 
         if (!isLoggedIn((ServerPlayerEntity) player)) {
             return ActionResult.FAIL;
@@ -179,7 +185,7 @@ public class EventManager {
      * @return
      */
     private static ActionResult onBlockAttack(PlayerEntity player, World world, Hand hand, BlockPos pos, Direction direction) {
-        if (player instanceof FakePlayer) return ActionResult.PASS;
+        if (player.getClass().getName().toLowerCase().contains("deployer")) return ActionResult.PASS;
 
         if (!isLoggedIn((ServerPlayerEntity) player)) {
             return ActionResult.FAIL;
@@ -197,7 +203,7 @@ public class EventManager {
      * @return
      */
     private static ActionResult onUseBlock(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
-        if (player instanceof FakePlayer) return ActionResult.PASS;
+        if (player.getClass().getName().toLowerCase().contains("deployer")) return ActionResult.PASS;
 
         if (!isLoggedIn((ServerPlayerEntity) player)) {
             ((ServerPlayerEntity) player).networkHandler.sendPacket(
@@ -223,7 +229,7 @@ public class EventManager {
      * @return
      */
     private static ActionResult onUseEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult entityHitResult) {
-        if (player instanceof FakePlayer) return ActionResult.PASS;
+        if (player.getClass().getName().toLowerCase().contains("deployer")) return ActionResult.PASS;
 
         if (!isLoggedIn((ServerPlayerEntity) player)) {
             return ActionResult.FAIL;
@@ -239,7 +245,7 @@ public class EventManager {
      * @return
      */
     private static TypedActionResult onUseItem(PlayerEntity player, World world, Hand hand) {
-        if (player instanceof FakePlayer) return TypedActionResult.pass(ItemStack.EMPTY);
+        if (player.getClass().getName().toLowerCase().contains("deployer")) return TypedActionResult.pass(ItemStack.EMPTY);
 
         if (!isLoggedIn((ServerPlayerEntity) player)) {
 
