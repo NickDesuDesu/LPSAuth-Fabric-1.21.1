@@ -5,6 +5,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.nickxd.lpsauth.LPSAuth;
 import net.nickxd.lpsauth.utils.IEntityDataSaver;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -13,9 +14,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Entity.class)
 public abstract class EntityDataSaverMixin implements IEntityDataSaver {
+    @Unique
     private NbtCompound persistentData;
     private static final String LOCATION_NBT_KEY = String.format("%s.last_known_location", LPSAuth.MOD_ID);
 
+    @Unique
     @Override
     public NbtCompound getPersistentData() {
         if (this.persistentData == null) {

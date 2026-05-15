@@ -37,7 +37,6 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	modCompileOnly "com.cobblemon:fabric:1.6.1+1.21.1"
 //	modImplementation "com.cobblemon:fabric:1.6.1+1.21.1"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.

@@ -1,5 +1,6 @@
 package net.nickxd.lpsauth.managers;
 
+import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.*;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
@@ -48,6 +49,9 @@ public class EventManager {
         PlayerPosition playerPosition = PlayerLocationData.getData((IEntityDataSaver) player);
         List<Double> xyz = playerPosition.position();
         List<Float> rot = playerPosition.rotation();
+        player.fallDistance = 0;
+        player.setVelocity(0,0,0);
+        player.velocityModified = true;
         player.teleport(player.getServerWorld(), xyz.get(0), xyz.get(1), xyz.get(2), rot.get(0), rot.get(1));
         player.sendMessage(Text.literal("Welcome back " + player.getName().getString() + "!"), true);
 
@@ -121,19 +125,25 @@ public class EventManager {
                 continue;
             }
 
+            BlockPos spawnPos = player.getServerWorld().getSpawnPos();
             PlayerPosition playerPosition = PlayerLocationData.getData((IEntityDataSaver) player);
-            List<Double> xyz = playerPosition.position();
             List<Float> rot = playerPosition.rotation();
 
-            player.teleport(player.getServerWorld(), xyz.get(0), 10000, xyz.get(2), rot.get(0), rot.get(1));
+            player.teleport(
+                    player.getServerWorld(),
+                    spawnPos.getX() + 0.5,
+                    10000,
+                    spawnPos.getZ() + 0.5,
+                    rot.get(0),
+                    rot.get(1));
             player.setVelocity(Vec3d.ZERO);
             player.velocityModified = true;
 
-            NbtList savedInventory = SERVER_INVENTORY_COPY.get(player.getUuid());
-            if (savedInventory != null) {
-                player.getInventory().readNbt(savedInventory);
-                player.currentScreenHandler.syncState();
-            }
+//            NbtList savedInventory = SERVER_INVENTORY_COPY.get(player.getUuid());
+//            if (savedInventory != null) {
+//                player.getInventory().readNbt(savedInventory);
+//                player.currentScreenHandler.syncState();
+//            }
 
             if (ticks%50 == 0) HttpUtil.checkAccountRegistration(player);
         }
@@ -151,6 +161,8 @@ public class EventManager {
      * @return
      */
     private static ActionResult onEntityAttack(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult entityHitResult) {
+        if (player instanceof FakePlayer) return ActionResult.PASS;
+
         if (!isLoggedIn((ServerPlayerEntity) player)) {
             return ActionResult.FAIL;
         }
@@ -167,6 +179,8 @@ public class EventManager {
      * @return
      */
     private static ActionResult onBlockAttack(PlayerEntity player, World world, Hand hand, BlockPos pos, Direction direction) {
+        if (player instanceof FakePlayer) return ActionResult.PASS;
+
         if (!isLoggedIn((ServerPlayerEntity) player)) {
             return ActionResult.FAIL;
         }
@@ -183,6 +197,8 @@ public class EventManager {
      * @return
      */
     private static ActionResult onUseBlock(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
+        if (player instanceof FakePlayer) return ActionResult.PASS;
+
         if (!isLoggedIn((ServerPlayerEntity) player)) {
             ((ServerPlayerEntity) player).networkHandler.sendPacket(
                     new ScreenHandlerSlotUpdateS2CPacket(
@@ -207,6 +223,8 @@ public class EventManager {
      * @return
      */
     private static ActionResult onUseEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult entityHitResult) {
+        if (player instanceof FakePlayer) return ActionResult.PASS;
+
         if (!isLoggedIn((ServerPlayerEntity) player)) {
             return ActionResult.FAIL;
         }
@@ -221,6 +239,8 @@ public class EventManager {
      * @return
      */
     private static TypedActionResult onUseItem(PlayerEntity player, World world, Hand hand) {
+        if (player instanceof FakePlayer) return TypedActionResult.pass(ItemStack.EMPTY);
+
         if (!isLoggedIn((ServerPlayerEntity) player)) {
 
             ((ServerPlayerEntity) player).networkHandler.sendPacket(

@@ -6,7 +6,8 @@
     "CommandManagerMixin",
     "EntityDataSaverMixin",
     "LivingEntityMixin",
-    "ServerPlayerEntityMixin"
+    "ServerPlayerEntityMixin",
+    "ServerPlayNetworkHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

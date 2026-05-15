@@ -56,6 +56,8 @@ public class HttpUtil {
 
                 if (status == 200) {
                     player.sendMessage(Text.literal("§a[Auth] Please login using /login <password>"), true);
+                } else if (status == 201) {
+                    player.sendMessage(Text.literal("§a[Auth] Please verify your account by doing /verify <otp sent to your discord account>"), true);
                 } else if (status == 404) {
                     player.sendMessage(Text.literal("§e[Auth] Please register using /register <discord_identifier> <password> <confirm_password>"), true);
                 } else {
